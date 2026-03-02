@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { attendanceApi } from '../services/apiServices';
 
 export default function AttendanceScreen() {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -11,7 +12,6 @@ export default function AttendanceScreen() {
     const cameraRef = useRef<any>(null);
     const router = useRouter();
 
-    // Trigger permissions immediately on mount so they don't block button logic later
     useEffect(() => {
         (async () => {
             await requestCameraPermission();
@@ -24,7 +24,6 @@ export default function AttendanceScreen() {
 
         try {
             setLoading(true);
-            console.log("Button Pressed: Verification started");
 
             // 1. Geolocation
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -33,31 +32,53 @@ export default function AttendanceScreen() {
                 setLoading(false);
                 return;
             }
-            const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High
+            });
 
             // 2. Face Capture
             if (cameraRef.current) {
                 const photo = await cameraRef.current.takePictureAsync({
-                    quality: 0.7, 
+                    quality: 0.7,
                     base64: true,
                 });
 
-                console.log("Success: Captured at", location.coords.latitude, location.coords.longitude);
-                Alert.alert("Success", "Attendance Marked!");
-                // Simulate API call to verify face and location
+                try {
+                    // 3. API Call to Laravel -> FastAPI
+                    const response = await attendanceApi.verifyAttendance(
+                        "user123", // Replace with actual logged-in user's ID
+                        photo.base64!,
+                        location.coords.latitude,
+                        location.coords.longitude
+                    );
+
+                    // 4. Handle Logic
+                    if (response.status === 'match') {
+                        Alert.alert("Success", "Attendance marked successfully!");
+                        router.replace("/dashboard");
+                    } else {
+                        Alert.alert("Verification Failed", response.message || "Face did not match records.");
+                    }
+
+                } catch (error) {
+                    console.error("API Error:", error);
+                    Alert.alert("Server Error", "Could not connect to the HIMS backend.");
+                }
             }
         } catch (error) {
             console.error(error);
-            Alert.alert("Error", "Could not verify. Please try again.");
+            Alert.alert("Error", "An unexpected error occurred.");
         } finally {
             setLoading(false);
         }
     };
 
+    // Permission Screen
     if (!cameraPermission?.granted) {
         return (
             <SafeAreaView style={styles.centered}>
-                <Text style={{ marginBottom: 20 }}>Camera access is required.</Text>
+                <Text style={{ marginBottom: 20 }}>Camera access is required for Face ID.</Text>
                 <TouchableOpacity style={styles.captureBtn} onPress={requestCameraPermission}>
                     <Text style={styles.btnText}>Enable Camera</Text>
                 </TouchableOpacity>
@@ -67,16 +88,16 @@ export default function AttendanceScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Top Section: Camera */}
             <View style={styles.cameraWrapper}>
-                <CameraView style={styles.camera} facing="front" ref={cameraRef}>
-                    <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none">
-                        <View style={styles.faceFrame} />
-                    </View>
-                </CameraView>
+                {/* CameraView as a self-closing tag to avoid children warning */}
+                <CameraView style={styles.camera} facing="front" ref={cameraRef} />
+
+                {/* Overlay positioned absolutely over the camera */}
+                <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none">
+                    <View style={styles.faceFrame} />
+                </View>
             </View>
 
-            {/* Bottom Section: Explicitly separate View for Buttons */}
             <View style={styles.footer}>
                 {loading ? (
                     <ActivityIndicator size="large" color="#007AFF" />
@@ -93,7 +114,16 @@ export default function AttendanceScreen() {
                         <TouchableOpacity
                             activeOpacity={0.6}
                             style={styles.skipBtn}
-                            onPress={() => Alert.alert("Skipped", "You have chosen to continue without marking attendance.")}
+                            onPress={() => {
+                                Alert.alert(
+                                    "Confirm Skip",
+                                    "Are you sure you want to skip attendance? This will be logged.",
+                                    [
+                                        { text: "Cancel", style: "cancel" },
+                                        { text: "Skip", onPress: () => router.replace("/dashboard") }
+                                    ]
+                                );
+                            }}
                         >
                             <Text style={styles.skipText}>Continue Without Attendance</Text>
                         </TouchableOpacity>
@@ -108,7 +138,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     cameraWrapper: {
-        flex: 3, 
+        flex: 3,
         margin: 15,
         borderRadius: 30,
         overflow: 'hidden',
@@ -121,7 +151,7 @@ const styles = StyleSheet.create({
         borderColor: '#007AFF', borderRadius: 100, borderStyle: 'dashed'
     },
     footer: {
-        flex: 1.5, // Dedicated space for buttons
+        flex: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
@@ -135,8 +165,8 @@ const styles = StyleSheet.create({
         borderRadius: 35,
         alignItems: 'center',
         marginBottom: 20,
-        elevation: 4, // Shadow for Android
-        shadowColor: '#000', // Shadow for iOS
+        elevation: 4,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
@@ -148,7 +178,7 @@ const styles = StyleSheet.create({
     },
     skipText: {
         color: '#666',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         textDecorationLine: 'underline'
     }

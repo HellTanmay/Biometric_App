@@ -16,6 +16,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.31",
     "@react-navigation/native-stack": "^7.14.2",
+    "axios": "^1.13.6",
     "expo": "~53.0.27",
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.11",
@@ -45,6 +46,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@emnapi/core": "^1.8.1",
+    "@emnapi/runtime": "^1.8.1",
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
