@@ -30,41 +30,30 @@ async def enroll(user_id: str = Form(...), file: UploadFile = File(...)):
     if embedding is None:
         return {"status": "error", "message": "No face detected"}
 
-    # Save embedding as JSON
-    embedding_path = os.path.join(EMBEDDING_FOLDER, f"{user_id}.json")
 
-    with open(embedding_path, "w") as f:
-        json.dump(embedding.tolist(), f)
-
-    return {"status": "success", "message": "User enrolled successfully"}
+    return {"status": "success", "message": "User enrolled successfully","embedding": embedding.tolist()}
 
 
 # =========================
 # 2️⃣ VERIFY USER
 # =========================
 @app.post("/verify")
-async def verify(user_id: str = Form(...), file: UploadFile = File(...)):
+async def verify(user_id: str = Form(...), file: UploadFile = File(...),stored_embedding: str = Form(...)):
 
-    embedding_path = os.path.join(EMBEDDING_FOLDER, f"{user_id}.json")
-
-    if not os.path.exists(embedding_path):
-        return {"status": "error", "message": "User not enrolled"}
-
+    
     live_embedding = extract_embedding(file.file)
 
     if live_embedding is None:
         return {"status": "error", "message": "No face detected"}
+    stored_embedding = np.array(json.loads(stored_embedding))
 
-    # Load stored embedding
-    with open(embedding_path, "r") as f:
-        stored_embedding = np.array(json.load(f))
 
     # Compare
     distance = np.linalg.norm(stored_embedding - live_embedding)
 
     if distance < THRESHOLD:
         return {
-            "status": "match",
+            "status": "success",
             "distance": float(distance)
         }
     else:
