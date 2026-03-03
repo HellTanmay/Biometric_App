@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, CameraCapturedPicture } from 'expo-camera';
 import { Block, Text, Button } from '../../components'; 

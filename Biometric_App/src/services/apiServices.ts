@@ -1,7 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://95bb-103-141-112-51.ngrok-free.app/api';
+const BASE_URL = 'https://aa72-2402-3a80-447a-25dd-d69-3307-f443-fbc9.ngrok-free.app/api';
 
 const apiClient = axios.create({
     baseURL: BASE_URL,
@@ -39,7 +39,7 @@ export const attendanceApi = {
             return response.data;
         } catch (error) {
             if (isAxiosError(error)) {
-                console.error("API Error details:", error.response?.data || error.message);
+                // console.error("API Error details:", error.response?.data || error.message);
                 throw error;
             }
         }

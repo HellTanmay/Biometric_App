@@ -17,6 +17,7 @@ export default function AttendanceScreen() {
         (async () => {
             await requestCameraPermission();
             await Location.requestForegroundPermissionsAsync();
+
         })();
     }, []);
 
@@ -32,6 +33,7 @@ export default function AttendanceScreen() {
 
             if (!user || !user?.id) {
                 Alert.alert("Error", "User session not found. Please login again.");
+                //@ts-ignore
                 router.replace("/login");
                 return;
             }
@@ -63,15 +65,16 @@ export default function AttendanceScreen() {
                         location.coords.latitude,
                         location.coords.longitude
                     );
-
+                    console.log(response)
                     // 5. Handle Logic
-                    if (response.status === 'match' || response.status === 'success') {
+                    if (response?.status === 'match' || response?.status === 'success') {
                         Alert.alert("Success", "Attendance marked successfully!");
                     } else {
                         Alert.alert("Verification Failed", response.message || "Face did not match records.");
                     }
                 } catch (error) {
-                    console.error("Verification API Error:", error);
+                    // console.error("Verification API Error:", error);
+                    //@ts-ignore
                     const serverMsg = error.response?.data?.message || "Could not verify attendance.";
                     Alert.alert("Server Error", serverMsg);
                 }
@@ -131,6 +134,7 @@ export default function AttendanceScreen() {
                                     "Are you sure you want to skip attendance? This will be logged.",
                                     [
                                         { text: "Cancel", style: "cancel" },
+                                        //@ts-ignore
                                         { text: "Skip", onPress: () => router.replace("/dashboard") }
                                     ]
                                 );
