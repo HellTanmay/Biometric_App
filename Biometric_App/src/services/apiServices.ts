@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://95bb-103-141-112-51.ngrok-free.app/api';
 
@@ -9,6 +10,22 @@ const apiClient = axios.create({
         'ngrok-skip-browser-warning': 'true',
     },
 });
+
+apiClient.interceptors.request.use(
+    async (config) => {
+        const token = await AsyncStorage.getItem('token');
+        console.log('API Client - Token Retrieved:', token ? 'Found (Starts with ' + token.substring(0, 10) + '....)' : 'Not Found');
+
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 export const attendanceApi = {
     verifyAttendance: async (userId: string, base64Image: string, latitude: number, longitude: number) => {

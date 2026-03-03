@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { attendanceApi } from '../services/apiServices';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function AttendanceScreen() {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -25,7 +26,17 @@ export default function AttendanceScreen() {
         try {
             setLoading(true);
 
-            // 1. Geolocation
+            // 1. Get User ID from AsyncStorage
+            const userDataString = await AsyncStorage.getItem("user");
+            const user = userDataString ? JSON.parse(userDataString) : null;
+
+            if (!user || !user?.id) {
+                Alert.alert("Error", "User session not found. Please login again.");
+                router.replace("/login");
+                return;
+            }
+
+            // 2. Geolocation 
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 Alert.alert("Permission Denied", "Location is required for hospital verification.");
@@ -34,37 +45,37 @@ export default function AttendanceScreen() {
             }
 
             const location = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.High
+                accuracy: Location.Accuracy.Balanced
             });
 
-            // 2. Face Capture
+            // 3. Face Capture
             if (cameraRef.current) {
                 const photo = await cameraRef.current.takePictureAsync({
-                    quality: 0.7,
+                    quality: 0.5,
                     base64: true,
                 });
 
                 try {
-                    // 3. API Call to Laravel -> FastAPI
+                    // 4. API Call to Laravel -> FastAPI
                     const response = await attendanceApi.verifyAttendance(
-                        "user123", // Replace with actual logged-in user's ID
+                        user.id,
                         photo.base64!,
                         location.coords.latitude,
                         location.coords.longitude
                     );
 
-                    // 4. Handle Logic
-                    if (response.status === 'match') {
+                    // 5. Handle Logic
+                    if (response.status === 'match' || response.status === 'success') {
                         Alert.alert("Success", "Attendance marked successfully!");
-                        router.replace("/dashboard");
                     } else {
                         Alert.alert("Verification Failed", response.message || "Face did not match records.");
                     }
-
                 } catch (error) {
-                    console.error("API Error:", error);
-                    Alert.alert("Server Error", "Could not connect to the HIMS backend.");
+                    console.error("Verification API Error:", error);
+                    const serverMsg = error.response?.data?.message || "Could not verify attendance.";
+                    Alert.alert("Server Error", serverMsg);
                 }
+
             }
         } catch (error) {
             console.error(error);

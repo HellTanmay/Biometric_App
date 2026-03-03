@@ -22,8 +22,10 @@ const Login = ({ navigation }: any) => {
                 await AsyncStorage.setItem("user", JSON.stringify(response.user));
                 await AsyncStorage.setItem("userId", response.user.id.toString());
 
+                Alert.alert("Success", "Login successful!");
+                console.log("Login Success. Enrollment Status:", response.user.is_enrolled);
+
                 // 2. Pathing Logic: Check enrollment status
-                // If your backend sends 'is_enrolled', use it. Otherwise, redirect to Enrollment.
                 if (response.user.is_enrolled) {
                     navigation.replace("Attendance");
                 } else {
