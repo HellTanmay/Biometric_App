@@ -33,18 +33,19 @@ export default function AttendanceScreen() {
     (async () => {
       await requestCameraPermission();
       await Location.requestForegroundPermissionsAsync();
+      await loadAttendanceStatus();
     })();
   }, []);
-  useEffect(()=>{
-    (async()=>{
-        await loadAttendanceStatus();
-    })();
-  },[])
+
 
   console.log(attendanceStatus);
 
   const handleVerifyAndClockIn = async () => {
     if (loading) return;
+    if (attendanceStatus?.status === "completed") {
+  Alert.alert("Attendance", "Today's attendance already completed.");
+  return;
+}
 
     try {
       setLoading(true);
@@ -102,29 +103,28 @@ export default function AttendanceScreen() {
 
       console.log(response);
 
-      if (response?.status === "success" || response?.status === "match") {
-        Alert.alert(
-          "Success",
-          attendanceStatus?.status == "check-in"
-            ? "Check-in successful!"
-            : attendanceStatus?.status == "check-out"
-              ? "Check-out successful!"
-              : "Already Completed",
-        );
+      if (response && !response?.error) {
 
-        // refresh attendance state
-        await loadAttendanceStatus();
-      } else {
-        Alert.alert(
-          "Verification Failed",
-          response?.message || "Face did not match records.",
-        );
-      }
+  if (attendanceStatus?.status === "check-in") {
+    Alert.alert("Success", "Check-in successful!");
+  } 
+  else if (attendanceStatus?.status === "check-out") {
+    Alert.alert("Success", "Check-out successful!");
+  }
+
+} else {
+
+  Alert.alert(
+    "Verification Failed",
+    response?.message || "Face did not match records."
+  );
+
+}
     } catch (error: any) {
       const serverMsg =
         error.response?.data?.message || "Could not verify attendance.";
 
-      Alert.alert("Server Error", serverMsg);
+      Alert.alert(serverMsg);
     } finally {
       setLoading(false);
       loadAttendanceStatus();
