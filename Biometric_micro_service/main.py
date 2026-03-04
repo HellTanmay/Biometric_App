@@ -65,5 +65,6 @@ async def verify(user_id: str = Form(...), file: UploadFile = File(...),stored_e
         return {
             "status": "no_match",
             "match": False,
+            "message": "Face cannot be recognized",
             "distance": float(distance)
         }
