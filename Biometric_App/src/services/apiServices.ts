@@ -56,7 +56,7 @@ export const attendanceApi = {
             return response.data;
         } catch (error) {
             if (isAxiosError(error)) {
-                console.error("API Error details:", error.response?.data || error.message);
+                // console.error("API Error details:", error.response?.data || error.message);
                 throw error;
             }
         }
