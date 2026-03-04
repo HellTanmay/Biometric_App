@@ -16,28 +16,38 @@ const Login = ({ navigation }: any) => {
         try {
             const response = await loginUser({ mobile, mpin });
 
-            if (response.token && response.user) {
-                // 1. Save info for the next screens
-                await AsyncStorage.setItem("token", response.token);
-                await AsyncStorage.setItem("user", JSON.stringify(response.user));
-                await AsyncStorage.setItem("userId", response.user.id.toString());
+            const token = response.token;
+            const user = response.user;
 
-                Alert.alert("Success", "Login successful!");
-                console.log("Login Success. Enrollment Status:", response.user.is_enrolled);
+            if (!token || !user) {
+                Alert.alert("Login Failed", "Invalid response from server.");
+                return;
+            }
 
-                // 2. Pathing Logic: Check enrollment status
-                if (response.user.is_enrolled) {
-                    navigation.replace("Attendance");
-                } else {
-                    navigation.replace("Enrollment"); // Redirect to Enrollment first
-                }
+            await AsyncStorage.setItem("token", token);
+            await AsyncStorage.setItem("user", JSON.stringify(user));
+            await AsyncStorage.setItem("userId", String(user.id));
+
+            const isEnrolled =
+                user.is_enrolled === true ||
+                user.is_enrolled === 1 ||
+                user.is_enrolled === "1";
+
+            Alert.alert("Success", "Login successful!");
+
+            if (isEnrolled) {
+                navigation.replace("Attendance");
+            }
+            else {
+                navigation.replace("Enrollment");
             }
         } catch (error: any) {
-            const msg = error.response?.data?.message || "Login failed";
+            const msg = error?.response?.data?.message || "Login failed";
             Alert.alert("Error", msg);
         }
     };
-    
+
+
     return (
         <LinearGradient
             colors={["#4e73df", "#7b2ff7"]}
