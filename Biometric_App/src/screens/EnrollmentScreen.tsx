@@ -18,8 +18,8 @@ const EnrollmentScreen = ({ navigation }: any) => {
 
             // 1. Capture the image (base64 is required for your API)
             const photo = await cameraRef.current.takePictureAsync({
-                base64: true,
                 quality: 0.4, 
+                skipProcessing: true
             });
 
             // 2. Retrieve the stored User ID from Login
@@ -35,7 +35,7 @@ const EnrollmentScreen = ({ navigation }: any) => {
 
             // 3. Call the API (Ensure you use the 'file' key as your backend expects)
             console.log("Enrolling user:", userId);
-            await attendanceApi.enrollStaff(userId, photo.base64 || "");
+            await attendanceApi.enrollStaff(userId, photo.uri || "");
 
             Alert.alert("Success", "Face enrollment complete!", [
                 { text: "Continue", onPress: () => navigation.replace("Attendance") }

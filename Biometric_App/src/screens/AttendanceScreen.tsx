@@ -77,8 +77,8 @@ export default function AttendanceScreen() {
             if (!cameraRef.current) return;
 
             const photo = await cameraRef.current.takePictureAsync({
-                quality: 0.5,
-                base64: true,
+                quality: 0.25,
+                skipProcessing: true,
             });
 
             let response;
@@ -87,7 +87,7 @@ export default function AttendanceScreen() {
                 // CHECK IN
                 response = await attendanceApi.checkInAttendace(
                     user.id,
-                    photo.base64!,
+                    photo.uri,
                     location.coords.latitude,
                     location.coords.longitude,
                 );
@@ -95,7 +95,7 @@ export default function AttendanceScreen() {
                 // CHECK OUT
                 response = await attendanceApi.checkOutAttendance(
                     user.id,
-                    photo.base64!,
+                    photo.uri,
                     location.coords.latitude,
                     location.coords.longitude,
                 );

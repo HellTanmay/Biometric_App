@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Replace with your PC IP
-export const API_BASE_URL = "https://95bb-103-141-112-51.ngrok-free.app/api";
+export const API_BASE_URL = "https://da25-2402-3a80-1e14-cb78-e990-3da-4260-b7d9.ngrok-free.app/api";
 
 export const ENDPOINTS = {
     LOGIN: "/login",

@@ -3,6 +3,7 @@ import face_recognition
 import numpy as np
 import json
 import cv2
+import io
 
 app = FastAPI()
 
@@ -12,22 +13,24 @@ THRESHOLD = 0.5  # Matching strictness
 # =========================
 # Face Embedding Extraction
 # =========================
-def extract_embedding(upload_file: UploadFile):
+import io
 
-    upload_file.file.seek(0)
+async def extract_embedding(upload_file: UploadFile):
 
-    image = face_recognition.load_image_file(upload_file.file)
+    contents = await upload_file.read()
+    image = face_recognition.load_image_file(io.BytesIO(contents))
 
     # Resize image for faster processing
     image = cv2.resize(image, (0, 0), fx=0.5, fy=0.5)
 
-    face_locations = face_recognition.face_locations(image)
+    # Ensure RGB format
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    # No face
+    face_locations = face_recognition.face_locations(image, model="hog")
+
     if len(face_locations) == 0:
         return "NO_FACE"
 
-    # Multiple faces
     if len(face_locations) > 1:
         return "MULTIPLE_FACES"
 
@@ -36,30 +39,28 @@ def extract_embedding(upload_file: UploadFile):
     face_width = right - left
     face_height = bottom - top
 
-    # Face too small
-    if face_width < 120 or face_height < 120:
+    if face_width < 60 or face_height < 60:
         return "FACE_TOO_SMALL"
 
     img_height, img_width, _ = image.shape
 
-    # Face not centered
     if left < 50 or right > img_width - 50:
         return "FACE_NOT_CENTERED"
 
     if top < 50 or bottom > img_height - 50:
         return "FACE_NOT_CENTERED"
 
-    # Face coverage check
     face_area = (bottom - top) * (right - left)
     image_area = img_height * img_width
-
     coverage = face_area / image_area
 
     if coverage < 0.08:
         return "FACE_TOO_FAR"
 
-    # Generate embeddings
-    encodings = face_recognition.face_encodings(image, face_locations)
+    encodings = face_recognition.face_encodings(
+        image,
+        known_face_locations=face_locations
+    )
 
     if len(encodings) == 0:
         return "ENCODING_FAILED"
@@ -98,12 +99,11 @@ def handle_embedding_error(result):
 # =========================
 @app.post("/enroll")
 async def enroll(
-    user_id: str = Form(...),
     file: UploadFile = File(...)
 ):
 
-    embedding = extract_embedding(file)
-
+    embedding = await extract_embedding(file)
+ 
     if isinstance(embedding, str):
         return handle_embedding_error(embedding)
 
@@ -119,19 +119,19 @@ async def enroll(
 # =========================
 @app.post("/verify")
 async def verify(
-    user_id: str = Form(...),
     file: UploadFile = File(...),
     stored_embedding: str = Form(...)
 ):
-
-    live_embedding = extract_embedding(file)
-
+    print('hit verify')
+    live_embedding =await extract_embedding(file)
+    print('live_embedding',live_embedding)
     if isinstance(live_embedding, str):
         return handle_embedding_error(live_embedding)
 
     stored_embedding = np.array(json.loads(stored_embedding))
 
-    distance = np.linalg.norm(stored_embedding - live_embedding)
+    # distance = np.linalg.norm(stored_embedding - live_embedding)
+    distance=face_recognition.face_distance([stored_embedding],live_embedding)
 
     if distance < THRESHOLD:
         return {
