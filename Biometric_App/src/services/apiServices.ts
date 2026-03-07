@@ -2,8 +2,8 @@ import axios, { isAxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
-const BASE_URL = 'https://da25-2402-3a80-1e14-cb78-e990-3da-4260-b7d9.ngrok-free.app/api';
-
+const BASE_URL = 'http://10.216.240.21:8000/api';
+// const BASE_URL = 'https://d4f3-2402-3a80-4224-3c35-8d4d-fcad-b7dc-9d05.ngrok-free.app/api';
 const apiClient = axios.create({
     baseURL: BASE_URL,
     headers: {

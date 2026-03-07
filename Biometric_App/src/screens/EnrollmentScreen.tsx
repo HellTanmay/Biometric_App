@@ -19,7 +19,8 @@ const EnrollmentScreen = ({ navigation }: any) => {
             // 1. Capture the image (base64 is required for your API)
             const photo = await cameraRef.current.takePictureAsync({
                 quality: 0.4, 
-                skipProcessing: true
+                skipProcessing: true,
+                shutterSound: false
             });
 
             // 2. Retrieve the stored User ID from Login
@@ -62,6 +63,7 @@ const EnrollmentScreen = ({ navigation }: any) => {
                     ref={cameraRef}
                     style={styles.camera}
                     facing="front"
+                    pictureSize='640x480'
                 />
                 {/* The Overlay Circle to help user positioning */}
                 <View style={styles.overlay} />
