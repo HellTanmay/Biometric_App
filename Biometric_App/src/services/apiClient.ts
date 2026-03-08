@@ -2,14 +2,14 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Replace with your PC IP
-export const API_BASE_URL = "http://10.216.240.21:8000/api";
+export const API_BASE_URL = "http://10.41.1.21:8000/api";
 // export const API_BASE_URL = "https://d4f3-2402-3a80-4224-3c35-8d4d-fcad-b7dc-9d05.ngrok-free.app/api";
 export const ENDPOINTS = {
-    LOGIN: "/login",
-    SEND_OTP: "/send-otp",
-    RESEND_OTP: "/resend-otp",
-    VERIFY_OTP: "/verify-otp",
-    SET_MPIN: "/set-mpin",
+    LOGIN: "/auth/login",
+    SEND_OTP: "/auth/send-otp",
+    RESEND_OTP: "/auth/resend-otp",
+    VERIFY_OTP: "/auth/verify-otp",
+    SET_MPIN: "/auth/set-mpin",
 
     // USERS
     GET_USERS: "/users",
@@ -19,7 +19,7 @@ export const ENDPOINTS = {
     RESTORE_USER: "/restore-user",
     FORCE_DELETE_USER: "/force-delete-user",
     GET_DELETED_USERS: "/deleted-users",
-
+    GET_NOTENROLLED_USERS:"/users/notEnrolled",
     // ROLES  CORRECTED
     GET_ROLES: "/roles",
     GET_DELETED_ROLES: "/deleted-roles",

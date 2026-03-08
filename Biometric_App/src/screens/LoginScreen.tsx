@@ -18,7 +18,7 @@ const Login = ({ navigation }: any) => {
 
             const token = response.token;
             const user = response.user;
-
+            console.log(user)
             if (!token || !user) {
                 Alert.alert("Login Failed", "Invalid response from server.");
                 return;
@@ -34,13 +34,17 @@ const Login = ({ navigation }: any) => {
                 user.is_enrolled === "1";
 
             Alert.alert("Success", "Login successful!");
-
-            if (isEnrolled) {
-                navigation.replace("Attendance");
-            }
-            else {
+            if (user.role=='admin'){
                 navigation.replace("Enrollment");
             }
+            else {
+                if (isEnrolled) {
+                navigation.replace("Attendance");
+                }else{
+                Alert.alert("You are not enrolled");
+                }
+        }
+           
         } catch (error: any) {
             const msg = error?.response?.data?.message || "Login failed";
             Alert.alert("Error", msg);

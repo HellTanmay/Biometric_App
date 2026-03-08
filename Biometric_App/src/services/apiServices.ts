@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
-const BASE_URL = 'http://10.216.240.21:8000/api';
+const BASE_URL = 'http://10.41.1.21:8000/api/biometric';
 // const BASE_URL = 'https://d4f3-2402-3a80-4224-3c35-8d4d-fcad-b7dc-9d05.ngrok-free.app/api';
 const apiClient = axios.create({
     baseURL: BASE_URL,
@@ -93,6 +93,7 @@ export const attendanceApi = {
                 name: "face.jpg",
                 type: "image/jpeg",
             } as any);
+            formData.append("user_id", userId);
             const response = await apiClient.post('/enroll', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -101,7 +102,6 @@ export const attendanceApi = {
             return response.data;
         } catch (error) {
             if (isAxiosError(error)) {
-                console.error("Enrollment Error:", error.response?.data || error.message);
                 throw error;
             }
         }
@@ -116,6 +116,7 @@ export const attendanceApi = {
                 throw error;
             }
         }
-    }
+    },
+
 
 };
